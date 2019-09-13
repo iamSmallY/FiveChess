@@ -12,7 +12,7 @@ class Bullet(Sprite):
         self.ship = ship
 
         # 创建一个子弹,并将其移动到正确的位置
-        self.rect = pygame.Rect(0, 0, ai_settings.bullet_width, ai_settings. bullet_height)
+        self.rect = pygame.Rect(0, 0, ai_settings.bullet_width, ai_settings.bullet_height)
         self.rect.centerx = ship.rect.centerx
         self.rect.top = ship.rect.top
 
@@ -34,12 +34,13 @@ class Bullet(Sprite):
         self.rect.y = self.y
 
     def draw_bullet(self):
+        self.update()
         pygame.draw.rect(self.screen, self.color, self.rect)
 
     def create_bullet(self, bullets):
         if self.fire and len(bullets) < self.ai_settings.bullets_max_existence_number:
             new_bullet = Bullet(self.ai_settings, self.screen, self.ship)
-            bullets.append(new_bullet)
+            bullets.add(new_bullet)
 
     @staticmethod
     def delete_bullet(bullets):

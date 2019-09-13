@@ -40,13 +40,14 @@ def update_screen(ai_settings, screen, ship, bullets):
     # 放入飞船
     ship.blitme()
 
-    # 显示窗口
-    pygame.display.flip()
-
     # 更新飞船位置
     ship.move()
 
     # 显示子弹
-    for bullet in bullets:
-        bullet.update()
+    for bullet in bullets.sprites():
         bullet.draw_bullet()
+
+    # 显示窗口
+    pygame.display.flip()
+
+

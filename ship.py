@@ -16,6 +16,9 @@ class Ship(object):
         self.rect.centerx = self.screen_rect.centerx
         self.rect.bottom = self.screen_rect.bottom
 
+        # 将飞船的位置以小数存储
+        self.center = float(self.rect.centerx)
+
         # 初始化移动属性
         self.moving_right = False
         self.moving_left = False
@@ -27,6 +30,8 @@ class Ship(object):
     # 移动部分
     def move(self):
         if self.moving_right and self.rect.right < self.ai_settings.screen_width:
-            self.rect.centerx += self.ai_settings.ship_speed
+            self.center += self.ai_settings.ship_speed
         elif self.moving_left and self.rect.left > 0:
-            self.rect.centerx -= self.ai_settings.ship_speed
+            self.center -= self.ai_settings.ship_speed
+
+        self.rect.centerx = self.center
