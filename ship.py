@@ -26,7 +26,7 @@ class Ship(object):
 
     # 移动部分
     def move(self):
-        if self.moving_right and self.rect.centerx < self.ai_settings.screen_width:
+        if self.moving_right and self.rect.right < self.ai_settings.screen_width:
             self.rect.centerx += self.ai_settings.ship_speed
-        elif self.moving_left and self.rect.centerx > 0:
+        elif self.moving_left and self.rect.left > 0:
             self.rect.centerx -= self.ai_settings.ship_speed
