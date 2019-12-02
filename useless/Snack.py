@@ -1,8 +1,8 @@
 import random
 import pygame
 from pygame.sprite import Sprite
-from Settings import Settings
-from Direction import Direction
+from useless.Settings import Settings
+from useless.Direction import Direction
 
 
 # class Snake(Sprite):
@@ -74,7 +74,7 @@ class Snake(Sprite):
 
 
 if __name__ == '__main__':
-    from Food import Food
+    from useless.Food import Food
     pygame.init()
     settings = Settings()
     screen = pygame.display.set_mode((settings.MAP_WIDTH, settings.MAP_HEIGHT))

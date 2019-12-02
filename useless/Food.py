@@ -1,7 +1,7 @@
 import pygame
 from pygame.sprite import Sprite
 import random
-from Settings import Settings
+from useless.Settings import Settings
 
 
 class Food(Sprite):
