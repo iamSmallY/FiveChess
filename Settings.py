@@ -1,11 +1,14 @@
-class Settings:
-    def __init__(self):
-        self.MAP_WIDTH = 640
-        self.MAP_HEIGHT = 480
+GAME_VERSION = '1.0'
 
-        self.SIZE = 10
-        self.FOOD_SIZE = 8
+REC_SIZE = 50
+CHESS_RADIUS = REC_SIZE//2 - 2
+CHESS_LEN = 15
+MAP_WIDTH = CHESS_LEN * REC_SIZE
+MAP_HEIGHT = CHESS_LEN * REC_SIZE
 
-        self.RED = (255, 0, 0)
-        self.WHITE = (255, 251, 240)
-        self.BLUE = (0, 0, 255)
+INFO_WIDTH = 200
+BUTTON_WIDTH = 140
+BUTTON_HEIGHT = 50
+
+SCREEN_WIDTH = MAP_WIDTH + INFO_WIDTH
+SCREEN_HEIGHT = MAP_HEIGHT
