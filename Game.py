@@ -1,8 +1,4 @@
-import pygame
-from pygame.locals import *
-from Map_Entry_Type import *
 from Map import *
-# from Settings import *
 from Button import *
 
 
