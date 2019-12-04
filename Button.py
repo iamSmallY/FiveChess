@@ -4,29 +4,55 @@ from Settings import *
 
 class Button(object):
     def __init__(self, screen, text, x, y, color, enable):
-        self.screen = screen
-        self.width = BUTTON_WIDTH
-        self.height = BUTTON_HEIGHT
-        self.button_color = color
-        self.text_color = TEXT_COLOR
-        self.enable = enable
-        self.font = pygame.font.SysFont(None, BUTTON_HEIGHT * 2 // 3)
+        self.__screen = screen
+        self.__width = BUTTON_WIDTH
+        self.__height = BUTTON_HEIGHT
+        self.__button_color = color
+        self.__text_color = TEXT_COLOR
+        self.__enable = enable
+        self.__font = pygame.font.SysFont(None, BUTTON_HEIGHT * 2 // 3)
 
-        self.rect = pygame.Rect(0, 0, self.width, self.height)
-        self.rect.topleft = (x, y)
-        self.text = text
+        self.__rect = pygame.Rect(0, 0, self.__width, self.__height)
+        self.__rect.topleft = (x, y)
+        self.__text = text
 
-        self.msg_image = self.font.render(self.text, True, self.text_color,
-                                          self.button_color[0] if self.enable else self.button_color[1])
-        self.msg_image_rect = self.msg_image.get_rect()
-        self.msg_image_rect.center = self.rect.center
+        self.__msg_image = self.__font.render(self.__text, True, self.__text_color,
+                                              self.__button_color[0] if self.__enable else self.__button_color[1])
+        self.__msg_image_rect = self.__msg_image.get_rect()
+        self.__msg_image_rect.center = self.__rect.center
 
     def draw(self):
-        self.screen.fill(self.button_color[0] if self.enable else self.button_color[1], self.rect)
-        self.screen.blit(self.msg_image, self.msg_image_rect)
+        self.__screen.fill(self.__button_color[0] if self.__enable else self.__button_color[1], self.__rect)
+        self.__screen.blit(self.__msg_image, self.__msg_image_rect)
+
+    def not_click(self):
+        if not self.__enable:
+            self.__msg_image = self.__font.render(self.__text, True, self.__text_color, self.__button_color[0])
+            self.__enable = True
+
+    def get_enable(self):
+        return self.__enable
+
+    def set_enable(self, enable):
+        self.__enable = enable
+
+    def get_font(self):
+        return self.__font
+
+    def set_msg_image(self, msg_image):
+        self.__msg_image = msg_image
 
     def get_rect(self):
-        return self.rect
+        return self.__rect
+
+    def get_text(self):
+        return self.__text
+
+    def get_text_color(self):
+        return self.__text_color
+
+    def get_button_color(self):
+        return self.__button_color
 
 
 class StartButton(Button):
@@ -34,18 +60,14 @@ class StartButton(Button):
         super().__init__(screen, text, x, y, BUTTON_COLOR, True)
 
     def click(self, game):
-        if self.enable:
+        if self.get_enable():
             game.start()
             game.set_winner(None)
-            self.msg_image = self.font.render(self.text, True, self.text_color, self.button_color[1])
-            self.enable = False
+            self.set_msg_image(self.get_font().render(self.get_text(), True,
+                                                      self.get_text_color(), self.get_button_color()[1]))
+            self.set_enable(False)
             return True
         return False
-
-    def not_click(self):
-        if not self.enable:
-            self.msg_image = self.font.render(self.text, True, self.text_color, self.button_color[0])
-            self.enable = True
 
 
 class GiveUpButton(Button):
@@ -53,16 +75,12 @@ class GiveUpButton(Button):
         super().__init__(screen, text, x, y, BUTTON_COLOR, False)
 
     def click(self, game):
-        if self.enable:
+        if self.get_enable():
             game.set_is_play(False)
             if game.get_winner() is None:
                 game.set_winner(game.get_map().reverse_turn(game.get_player()))
-            self.msg_image = self.font.render(self.text, True, self.text_color, self.button_color[1])
-            self.enable = False
+            self.set_msg_image(self.get_font().render(self.get_text(), True,
+                                                      self.get_text_color(), self.get_button_color()[1]))
+            self.set_enable(False)
             return True
         return False
-
-    def not_click(self):
-        if not self.enable:
-            self.msg_image = self.font.render(self.text, True, self.text_color, self.button_color[0])
-            self.enable = True

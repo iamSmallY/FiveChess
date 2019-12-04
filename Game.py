@@ -1,9 +1,10 @@
 from Map import *
 from Button import *
+from ChessAI import *
 
 
 class Game(object):
-    def __init__(self,caption):
+    def __init__(self, caption):
         pygame.init()
         self.__screen = pygame.display.set_mode([SCREEN_WIDTH, SCREEN_HEIGHT])
         pygame.display.set_caption(caption)
@@ -18,6 +19,9 @@ class Game(object):
         self.__player = None
         self.__winner = None
 
+        self.__AI = ChessAI(CHESS_LEN)
+        self.__useAI = False
+
     def start(self):
         self.__is_play = True
         self.__player = MapEntryType.MAP_PLAYER_ONE
@@ -25,6 +29,7 @@ class Game(object):
 
     def play(self):
         self.__clock.tick(60)
+
         pygame.draw.rect(self.__screen, LIGHT_YELLOW, pygame.Rect(0, 0, MAP_WIDTH, MAP_HEIGHT))
         pygame.draw.rect(self.__screen, (255, 255, 255), pygame.Rect(MAP_WIDTH, 0, INFO_WIDTH, SCREEN_HEIGHT))
 
@@ -32,12 +37,17 @@ class Game(object):
             button.draw()
 
         if self.__is_play and not self.is_over():
+            if self.__useAI:
+                x, y = self.__AI.find_best_chess(self.__map.get_map(), self.__player)
+                self.check_click(x, y, True)
+                self.__useAI = False
+
             if self.__action is not None:
                 self.check_click(self.__action[0], self.__action[1])
                 self.__action = None
 
             if not self.is_over():
-                self.show_winner()
+                self.change_mouse_show()
 
         if self.is_over():
             self.show_winner()
@@ -45,13 +55,29 @@ class Game(object):
         self.__map.draw_background(self.__screen)
         self.__map.draw_chess(self.__screen)
 
+    def change_mouse_show(self):
+        map_x, map_y = pygame.mouse.get_pos()
+        x, y = self.__map.map_pos_to_index(map_x, map_y)
+        if self.__map.is_in_map(map_x, map_y) and self.__map.is_empty(x, y):
+            pygame.mouse.set_visible(False)
+            pos, radius = (map_x, map_y), CHESS_RADIUS
+            pygame.draw.circle(self.__screen, LIGHT_RED, pos, radius)
+        else:
+            pygame.mouse.set_visible(True)
+
     def check_click(self, x, y, is_AI = False):
         self.__map.click(x, y, self.__player)
-        self.__player = self.__map.reverse_turn(self.__player)
+        if self.__AI.is_win(self.__map.get_map(), self.__player):
+            self.__winner = self.__player
+            self.click_button(self.__buttons[1])
+        else:
+            self.__player = self.__map.reverse_turn(self.__player)
+            if not is_AI:
+                self.__useAI = True
 
     def mouse_click(self, map_x, map_y):
         if self.__is_play and self.__map.is_in_map(map_x, map_y) and not self.is_over():
-            x, y = self.__map.map_pos_in_index(map_x, map_y)
+            x, y = self.__map.map_pos_to_index(map_x, map_y)
             if self.__map.is_empty(x, y):
                 self.__action = (x, y)
 
@@ -66,6 +92,8 @@ class Game(object):
             font_image_rect.x = location_x
             font_image_rect.y = location_y
             screen.blit(font_image, font_image_rect)
+        if self.__winner is None:
+            return
         if self.__winner == MapEntryType.MAP_PLAYER_ONE:
             string = 'Winner is White'
         else:

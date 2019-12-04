@@ -1,4 +1,4 @@
-from Map_Entry_Type import *
+from Type import *
 import pygame
 from Settings import *
 
@@ -30,7 +30,7 @@ class Map(object):
         return map_x, map_y, REC_SIZE, REC_SIZE
 
     @staticmethod
-    def map_pos_in_index(map_x, map_y):
+    def map_pos_to_index(map_x, map_y):
         return map_x//REC_SIZE, map_y//REC_SIZE
 
     @staticmethod
@@ -93,3 +93,6 @@ class Map(object):
         pos = [(3, 3), (11, 3), (3, 11), (11, 11), (7, 7)]
         for x, y in pos:
             pygame.draw.rect(screen, color, (REC_SIZE//2 + REC_SIZE*x - rec_size//2, REC_SIZE//2 + REC_SIZE*y - rec_size//2, rec_size, rec_size))
+
+    def get_map(self):
+        return self.__map
