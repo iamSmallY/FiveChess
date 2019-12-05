@@ -15,7 +15,7 @@ class ChessAI(object):
 
         self.__record = [[[0, 0, 0, 0] for x in range(chess_len)] for y in range(chess_len)]
         self.__count = [[0 for x in range(CHESS_TYPE_NUM)] for y in range(2)]
-        self.__pos_score = [[7-max(abs(x-7), abs(y-7)) for x in range(chess_len)] for y in range(chess_len)]
+        # self.__pos_score = [[7-max(abs(x-7), abs(y-7)) for x in range(chess_len)] for y in range(chess_len)]
         # self.__save_count = 0
 
     def reset(self):
@@ -34,6 +34,25 @@ class ChessAI(object):
 
     def is_win(self, board, turn):
         return self.evaluate(board, turn, True)
+
+    def evaluate_point_score(self, board, x, y, mine, opponent):
+        dir_offset = [(1, 0), (0, 1), (1, 1), (1, -1)]
+        for i in range(len(self.__count)):
+            for j in range(len(self.__count[0])):
+                self.__count[i][j] = 0
+
+        board[y][x] = mine
+        self.evaluate_point(board, x, y, mine, opponent, self.__count[mine-1])
+        mine_count = self.__count[mine-1]
+        board[y][x] = opponent
+        self.evaluate_point(board, x, y, opponent, mine, self.__count[opponent-1])
+        opponent_count = self.__count[opponent-1]
+        board[y][x] = 0
+
+        m_score = self.get_point_score(mine_count)
+        o_score = self.get_point_score(opponent_count)
+
+        return m_score, o_score
 
     def has_neighbor(self, board, x, y, radius):
         start_x, end_x = x-radius, x+radius
@@ -61,13 +80,39 @@ class ChessAI(object):
         for y in range(self.__len):
             for x in range(self.__len):
                 if board[y][x] == 0 and self.has_neighbor(board, x, y, radius):
-                    score = self.__pos_score[y][x]
-                    moves.append((score, x, y))
+                    m_score, o_score = self.evaluate_point_score(board, x, y, mine, opponent)
+                    point = (max(m_score, o_score), x, y)
+
+                    if m_score >= SCORE_FIVE or o_score >= SCORE_FIVE:
+                        fives.append(point)
+                    elif m_score >= SCORE_FOUR:
+                        mfours.append(point)
+                    elif o_score >= SCORE_FOUR:
+                        ofours.append(point)
+                    elif m_score >= SCORE_SFOUR:
+                        msfours.append(point)
+                    elif o_score >= SCORE_SFOUR:
+                        osfours.append(point)
+
+                    moves.append(point)
+
+        if len(fives) > 0:
+            return fives
+        if len(mfours) > 0:
+            return mfours
+        if len(ofours) > 0:
+            if len(msfours) > 0:
+                return ofours
+            else:
+                return ofours+msfours
 
         moves.sort(reverse=True)
+
+        if self.__max_depth > 2 and len(moves) > AI_LIMITED_MOVE_NUM:
+            moves = moves[:AI_LIMITED_MOVE_NUM]
         return moves
 
-    def cut_search(self, board, turn, depth, alpha = SCORE_MIN, beta = SCORE_MAX):
+    def cut_search(self, board, turn, depth, alpha=SCORE_MIN, beta=SCORE_MAX):
         score = self.evaluate(board, turn)
         if depth <= 0 or abs(score) >= SCORE_FIVE:
             return score
@@ -78,6 +123,7 @@ class ChessAI(object):
 
         best_move = None
         self.__alpha += len(moves)
+
         for _, x, y in moves:
             board[y][x] = turn
 
@@ -111,6 +157,36 @@ class ChessAI(object):
         self.__beta = 0
         score, x, y = self.search(board, turn)
         return x, y
+
+    @staticmethod
+    def get_point_score(count):
+        score = 0
+        if count[FIVE] > 0:
+            return SCORE_FIVE
+
+        if count[FOUR] > 0:
+            return SCORE_FOUR
+
+        if count[SFOUR] > 1:
+            score += count[SFOUR] * SCORE_SFOUR
+        elif count[SFOUR] > 0 and count[THREE] > 0:
+            score += count[SFOUR] * SCORE_SFOUR
+        elif count[SFOUR] > 0:
+            score += SCORE_THREE
+
+        if count[THREE] > 1:
+            score += 5 * SCORE_THREE
+        elif count[THREE] > 0:
+            score += SCORE_THREE
+
+        if count[STHREE] > 0:
+            score += count[STHREE] * SCORE_STHREE
+        if count[TWO] > 0:
+            score += count[TWO] * SCORE_TWO
+        if count[STWO] > 0:
+            score += count[STWO] * SCORE_STWO
+
+        return score
 
     @staticmethod
     def get_score(mine_count, opponent_count):
@@ -223,7 +299,7 @@ class ChessAI(object):
         def set_record(_x, _y, _left, _right, _dir_index, _dir_offset):
             temp_x = x + (-5 + _left) * _dir_offset[0]
             temp_y = y + (-5 + _left) * _dir_offset[1]
-            for i in range(_left, _right):
+            for i in range(_left, _right+1):
                 temp_x += _dir_offset[0]
                 temp_y += _dir_offset[1]
                 self.__record[temp_y][temp_x][_dir_index] = 1
