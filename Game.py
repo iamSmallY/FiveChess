@@ -1,4 +1,3 @@
-from Map import *
 from Button import *
 from ChessAI import *
 
@@ -12,6 +11,7 @@ class Game(object):
         self.__buttons = []
         self.__buttons.append(StartButton(self.__screen, 'Start', MAP_WIDTH+30, 15))
         self.__buttons.append(GiveUpButton(self.__screen, 'GiveUp', MAP_WIDTH+30, BUTTON_HEIGHT+45))
+        self.__useAI_button = UseAIButton(self.__screen, 'PVE', MAP_WIDTH+30, 2*BUTTON_HEIGHT+75)
         self.__action = None
 
         self.__is_play = False
@@ -20,7 +20,8 @@ class Game(object):
         self.__winner = None
 
         self.__AI = ChessAI(CHESS_LEN)
-        self.__useAI = False
+        self.__isAI = False
+        self.__useAI = True
 
     def start(self):
         self.__is_play = True
@@ -36,11 +37,13 @@ class Game(object):
         for button in self.__buttons:
             button.draw()
 
+        self.__useAI_button.draw()
+
         if self.__is_play and not self.is_over():
-            if self.__useAI:
+            if self.__useAI and self.__isAI:
                 x, y = self.__AI.find_best_chess(self.__map.get_map(), self.__player)
                 self.check_click(x, y, True)
-                self.__useAI = False
+                self.__isAI = False
 
             if self.__action is not None:
                 self.check_click(self.__action[0], self.__action[1])
@@ -65,7 +68,7 @@ class Game(object):
         else:
             pygame.mouse.set_visible(True)
 
-    def check_click(self, x, y, is_AI = False):
+    def check_click(self, x, y, is_AI=False):
         self.__map.click(x, y, self.__player)
         if self.__AI.is_win(self.__map.get_map(), self.__player):
             self.__winner = self.__player
@@ -73,7 +76,7 @@ class Game(object):
         else:
             self.__player = self.__map.reverse_turn(self.__player)
             if not is_AI:
-                self.__useAI = True
+                self.__isAI = True
 
     def mouse_click(self, map_x, map_y):
         if self.__is_play and self.__map.is_in_map(map_x, map_y) and not self.is_over():
@@ -102,7 +105,7 @@ class Game(object):
         pygame.mouse.set_visible(True)
 
     def click_button(self, button):
-        if button.click(self):
+        if button.click(self, self.__useAI_button):
             for temp in self.__buttons:
                 if temp != button:
                     temp.not_click()
@@ -112,6 +115,9 @@ class Game(object):
             if button.get_rect().collidepoint(mouse_x, mouse_y):
                 self.click_button(button)
                 break
+        else:
+            if self.__useAI_button.get_rect().collidepoint(mouse_x, mouse_y):
+                self.__useAI_button.click(self)
 
     def get_is_play(self):
         return self.__is_play
@@ -130,6 +136,12 @@ class Game(object):
 
     def set_winner(self, winner):
         self.__winner = winner
+
+    def get_useAI(self):
+        return self.__useAI
+
+    def set_useAI(self, useAI):
+        self.__useAI = useAI
 
 
 if __name__ == '__main__':

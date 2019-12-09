@@ -1,4 +1,3 @@
-from Type import *
 import pygame
 from Settings import *
 

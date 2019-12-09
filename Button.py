@@ -59,13 +59,16 @@ class StartButton(Button):
     def __init__(self, screen, text, x, y):
         super().__init__(screen, text, x, y, BUTTON_COLOR, True)
 
-    def click(self, game):
+    def click(self, game, button):
         if self.get_enable():
             game.start()
             game.set_winner(None)
             self.set_msg_image(self.get_font().render(self.get_text(), True,
                                                       self.get_text_color(), self.get_button_color()[1]))
             self.set_enable(False)
+            button.set_enable(False)
+            button.set_msg(AI_BUTTON_COLOR[1])
+
             return True
         return False
 
@@ -74,7 +77,7 @@ class GiveUpButton(Button):
     def __init__(self, screen, text, x, y):
         super().__init__(screen, text, x, y, BUTTON_COLOR, False)
 
-    def click(self, game):
+    def click(self, game, button):
         if self.get_enable():
             game.set_is_play(False)
             if game.get_winner() is None:
@@ -82,5 +85,23 @@ class GiveUpButton(Button):
             self.set_msg_image(self.get_font().render(self.get_text(), True,
                                                       self.get_text_color(), self.get_button_color()[1]))
             self.set_enable(False)
+            button.set_enable(True)
+            button.set_msg(AI_BUTTON_COLOR[0])
             return True
         return False
+
+
+class UseAIButton(Button):
+    def __init__(self, screen, text, x, y):
+        super().__init__(screen, text, x, y, AI_BUTTON_COLOR, True)
+        self.__text = text
+
+    def click(self, game):
+        if self.get_enable():
+            game.set_useAI(not game.get_useAI())
+            self.__text = 'PVE' if self.__text == 'PVP' else 'PVP'
+            self.set_msg(AI_BUTTON_COLOR[0])
+
+    def set_msg(self, color):
+        self.set_msg_image(self.get_font().render(self.__text, True,
+                                                  self.get_text_color(), color))

@@ -1,7 +1,4 @@
-from Game import *
 from Map import *
-import copy
-import time
 
 
 class ChessAI(object):
@@ -15,8 +12,6 @@ class ChessAI(object):
 
         self.__record = [[[0, 0, 0, 0] for x in range(chess_len)] for y in range(chess_len)]
         self.__count = [[0 for x in range(CHESS_TYPE_NUM)] for y in range(2)]
-        # self.__pos_score = [[7-max(abs(x-7), abs(y-7)) for x in range(chess_len)] for y in range(chess_len)]
-        # self.__save_count = 0
 
     def reset(self):
         for y in range(self.__len):
@@ -26,7 +21,6 @@ class ChessAI(object):
         for i in range(len(self.__count)):
             for j in range(len(self.__count[0])):
                 self.__count[i][j] = 0
-        # self.__save_count = 0
 
     @staticmethod
     def click(map, x, y, turn):
@@ -36,7 +30,6 @@ class ChessAI(object):
         return self.evaluate(board, turn, True)
 
     def evaluate_point_score(self, board, x, y, mine, opponent):
-        dir_offset = [(1, 0), (0, 1), (1, 1), (1, -1)]
         for i in range(len(self.__count)):
             for j in range(len(self.__count[0])):
                 self.__count[i][j] = 0
@@ -145,7 +138,7 @@ class ChessAI(object):
 
         return alpha
 
-    def search(self, board, turn, depth=4):
+    def search(self, board, turn, depth=AI_SEARCH_DEPTH):
         self.__max_depth = depth
         self.__best_move = None
         score = self.cut_search(board, turn, depth)
@@ -448,7 +441,6 @@ class ChessAI(object):
                     if line[right_idx + 2] == mine:
                         if line[right_idx + 3] == empty:
                             if left_empty:  # XMXMX
-                                # setRecord(self, x, y, left_idx, right_idx+2, dir_index, dir)
                                 count[TWO] += 1
                             else:  # PMXMX
                                 count[STWO] += 1
