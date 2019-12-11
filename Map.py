@@ -1,11 +1,17 @@
 import pygame
 from Settings import *
+from Button import *
+import abc
 
 
 class AbstractMap(object):
-    def __init__(self, width, height):
+    def __init__(self, screen, width, height):
+        self.__screen = screen
         self.__width = width
         self.__height = height
+
+    def get_screen(self):
+        return self.__screen
 
     def get_width(self):
         return self.__width
@@ -13,40 +19,81 @@ class AbstractMap(object):
     def get_height(self):
         return self.__height
 
-    def draw_background(self, screen):
+    @abc.abstractmethod
+    def reset(self):
+        pass
+
+    @abc.abstractmethod
+    def draw_background(self):
+        pass
+
+    @abc.abstractmethod
+    def draw_button(self):
+        pass
+
+    @abc.abstractmethod
+    def check_buttons(self, game, mouse_x, mouse_y):
+        pass
+
+    @abc.abstractmethod
+    def click_button(self, game, button):
+        pass
+
+    @abc.abstractmethod
+    def get_button(self):
         pass
 
 
 class StartMap(AbstractMap):
-    def __init__(self, width, height):
-        super().__init__(width, height)
+    def __init__(self, screen, width, height):
+        super().__init__(screen, width, height)
 
-        pygame.init()
-        self.__screen = pygame.display.set_mode([SCREEN_WIDTH, SCREEN_HEIGHT])
-        pygame.display.set_caption('...')
+        self.__back_img = pygame.image.load('./source/image/background.jpg')
+        self.__back_img = pygame.transform.scale(self.__back_img, (SCREEN_WIDTH, SCREEN_HEIGHT))
 
-        self.__title_rect = pygame.Rect(0, 0, TITLE_WIDTH, TITLE_HEIGHT)
-        self.__title_rect.center = (SCREEN_WIDTH//2, SCREEN_HEIGHT//2)
-
-        self.__title_font = pygame.font.Font(None, TITLE_HEIGHT*2 // 3)
-        self.__title_image = self.__title_font.render('Five Chess', True, BLACK_COLOR, WHITE_COLOR)
+        self.__title_font = pygame.font.Font(None, TITLE_HEIGHT)
+        self.__title_image = self.__title_font.render('Five Chess', True, BLACK_COLOR)
         self.__title_image_rect = self.__title_image.get_rect()
-        self.__title_image_rect.center = self.__title_rect.center
+        self.__title_image_rect.center = (TITLE_X, TITLE_Y)
 
-        self.draw_background(self.__screen)
+        self.__start_button = StartButton(self.get_screen(), 'Start', TITLE_X-BUTTON_WIDTH//2, TITLE_Y+TITLE_HEIGHT)
+        self.__model_button = UseAIButton(self.get_screen(), 'PVE', TITLE_X-BUTTON_WIDTH//2, TITLE_Y+TITLE_HEIGHT+60)
 
-    def draw_background(self, screen):
-        pygame.draw.rect(self.__screen, WHITE_COLOR, pygame.Rect(0, 0, MAP_WIDTH, MAP_HEIGHT))
-        pygame.draw.rect(self.__screen, WHITE_COLOR, pygame.Rect(MAP_WIDTH, 0, INFO_WIDTH, SCREEN_HEIGHT))
-        self.__screen.fill(WHITE_COLOR, self.__title_rect)
-        self.__screen.blit(self.__title_image, self.__title_image_rect)
+    def reset(self):
+        self.__start_button = StartButton(self.get_screen(), 'Start', TITLE_X-BUTTON_WIDTH//2, TITLE_Y+TITLE_HEIGHT)
+        self.__model_button = UseAIButton(self.get_screen(), 'PVE', TITLE_X-BUTTON_WIDTH//2, TITLE_Y+TITLE_HEIGHT+60)
+
+    def draw_background(self):
+        pygame.draw.rect(self.get_screen(), WHITE_COLOR, pygame.Rect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT))
+        self.get_screen().blit(self.__back_img, (0, 0))
+        self.get_screen().blit(self.__title_image, self.__title_image_rect)
+        self.draw_button()
+
+    def draw_button(self):
+        self.__start_button.draw()
+        self.__model_button.draw()
+
+    def check_buttons(self, game, mouse_x, mouse_y):
+        if self.__start_button.get_rect().collidepoint(mouse_x, mouse_y):
+            self.click_button(game, self.__start_button)
+            return True
+        elif self.__model_button.get_rect().collidepoint(mouse_x, mouse_y):
+            self.click_button(game, self.__model_button)
+            return False
+
+    def click_button(self, game, button):
+        button.click(game)
 
 
 class ChessMap(AbstractMap):
-    def __init__(self, width, height):
-        super().__init__(width, height)
+    def __init__(self, screen, width, height):
+        super().__init__(screen, width, height)
         self.__map = [[0 for x in range(self.get_width())] for y in range(self.get_height())]
         self.__steps = []
+        self.__buttons = []
+        self.__buttons.append(StartButton(self.get_screen(), 'Start', MAP_WIDTH + 30, 15))
+        self.__buttons.append(GiveUpButton(self.get_screen(), 'GiveUp', MAP_WIDTH + 30, BUTTON_HEIGHT + 45))
+        self.__useAI_button = UseAIButton(self.get_screen(), 'PVE', MAP_WIDTH + 30, 2 * BUTTON_HEIGHT + 75)
 
     def reset(self):
         for y in range(self.get_height()):
@@ -106,7 +153,7 @@ class ChessMap(AbstractMap):
                          (map_x + width, map_y + height), (map_x, map_y + height)]
             pygame.draw.lines(screen, PURPLE_COLOR, True, line_list, 1)
 
-    def draw_background(self, screen):
+    def draw_background(self):
         color = (0, 0, 0)
         for y in range(self.get_height()):
             # 画横线
@@ -116,7 +163,7 @@ class ChessMap(AbstractMap):
                 width = 2
             else:
                 width = 1
-            pygame.draw.line(screen, color, start_pos, end_pos, width)
+            pygame.draw.line(self.get_screen(), color, start_pos, end_pos, width)
         for x in range(self.get_width()):
             # 画竖线
             start_pos, end_pos = (REC_SIZE // 2 + REC_SIZE * x, REC_SIZE // 2), \
@@ -125,22 +172,49 @@ class ChessMap(AbstractMap):
                 width = 2
             else:
                 width = 1
-            pygame.draw.line(screen, color, start_pos, end_pos, width)
+            pygame.draw.line(self.get_screen(), color, start_pos, end_pos, width)
 
         rec_size = 8
         pos = [(3, 3), (11, 3), (3, 11), (11, 11), (7, 7)]
         for x, y in pos:
-            pygame.draw.rect(screen, color,
+            pygame.draw.rect(self.get_screen(), color,
                              (REC_SIZE // 2 + REC_SIZE * x - rec_size // 2,
                               REC_SIZE // 2 + REC_SIZE * y - rec_size // 2,
                               rec_size, rec_size))
+
+    def draw_button(self):
+        for button in self.__buttons:
+            button.draw()
+        self.__useAI_button.draw()
+
+    def click_button(self, game, button):
+        if button.click(game, self.__useAI_button):
+            for temp in self.__buttons:
+                if temp != button:
+                    temp.not_click()
+
+    def check_buttons(self, game, mouse_x, mouse_y):
+        for button in self.__buttons:
+            if button.get_rect().collidepoint(mouse_x, mouse_y):
+                self.click_button(game, button)
+                break
+        else:
+            if self.__useAI_button.get_rect().collidepoint(mouse_x, mouse_y):
+                self.__useAI_button.click(game)
+
+    def get_button(self):
+        return self.__buttons
 
     def get_map(self):
         return self.__map
 
 
 if __name__ == '__main__':
-    mapp = StartMap(SCREEN_WIDTH, SCREEN_HEIGHT)
+    pygame.init()
+    screen = pygame.display.set_mode([SCREEN_WIDTH, SCREEN_HEIGHT])
+    pygame.display.set_caption('test')
+    mapp = StartMap(screen, SCREEN_WIDTH, SCREEN_HEIGHT)
+    mapp.draw_background()
     while True:
         pygame.display.update()
 

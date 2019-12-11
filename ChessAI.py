@@ -143,7 +143,7 @@ class ChessAI(object):
         self.__max_depth = depth
         self.__best_move = None
         score = self.cut_search(board, turn, depth)
-        x, y = self.__best_move
+        x, y = self.__best_move if self.__best_move is not None else (7, 7)
         return score, x, y
 
     def find_best_chess(self, board, turn):

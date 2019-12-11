@@ -59,16 +59,22 @@ class StartButton(Button):
     def __init__(self, screen, text, x, y):
         super().__init__(screen, text, x, y, BUTTON_COLOR, True)
 
-    def click(self, game, button):
+    # def click(self, game, button):
+    #     if self.get_enable():
+    #         game.start()
+    #         game.set_winner(None)
+    #         self.set_msg_image(self.get_font().render(self.get_text(), True,
+    #                                                   self.get_text_color(), self.get_button_color()[1]))
+    #         self.set_enable(False) # todo delete this, it's useless
+    #         button.set_enable(False)
+    #         button.set_msg(AI_BUTTON_COLOR[1])
+    #
+    #         return True
+    #     return False
+    def click(self, game):
         if self.get_enable():
             game.start()
             game.set_winner(None)
-            self.set_msg_image(self.get_font().render(self.get_text(), True,
-                                                      self.get_text_color(), self.get_button_color()[1]))
-            self.set_enable(False)
-            button.set_enable(False)
-            button.set_msg(AI_BUTTON_COLOR[1])
-
             return True
         return False
 
