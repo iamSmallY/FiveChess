@@ -2,16 +2,55 @@ import pygame
 from Settings import *
 
 
-class Map(object):
+class AbstractMap(object):
     def __init__(self, width, height):
         self.__width = width
         self.__height = height
-        self.__map = [[0for x in range(self.__width)] for y in range(self.__height)]
+
+    def get_width(self):
+        return self.__width
+
+    def get_height(self):
+        return self.__height
+
+    def draw_background(self, screen):
+        pass
+
+
+class StartMap(AbstractMap):
+    def __init__(self, width, height):
+        super().__init__(width, height)
+
+        pygame.init()
+        self.__screen = pygame.display.set_mode([SCREEN_WIDTH, SCREEN_HEIGHT])
+        pygame.display.set_caption('...')
+
+        self.__title_rect = pygame.Rect(0, 0, TITLE_WIDTH, TITLE_HEIGHT)
+        self.__title_rect.center = (SCREEN_WIDTH//2, SCREEN_HEIGHT//2)
+
+        self.__title_font = pygame.font.Font(None, TITLE_HEIGHT*2 // 3)
+        self.__title_image = self.__title_font.render('Five Chess', True, BLACK_COLOR, WHITE_COLOR)
+        self.__title_image_rect = self.__title_image.get_rect()
+        self.__title_image_rect.center = self.__title_rect.center
+
+        self.draw_background(self.__screen)
+
+    def draw_background(self, screen):
+        pygame.draw.rect(self.__screen, WHITE_COLOR, pygame.Rect(0, 0, MAP_WIDTH, MAP_HEIGHT))
+        pygame.draw.rect(self.__screen, WHITE_COLOR, pygame.Rect(MAP_WIDTH, 0, INFO_WIDTH, SCREEN_HEIGHT))
+        self.__screen.fill(WHITE_COLOR, self.__title_rect)
+        self.__screen.blit(self.__title_image, self.__title_image_rect)
+
+
+class ChessMap(AbstractMap):
+    def __init__(self, width, height):
+        super().__init__(width, height)
+        self.__map = [[0 for x in range(self.get_width())] for y in range(self.get_height())]
         self.__steps = []
 
     def reset(self):
-        for y in range(self.__height):
-            for x in range(self.__width):
+        for y in range(self.get_height()):
+            for x in range(self.get_width()):
                 self.__map[y][x] = 0
         self.__steps = []
 
@@ -30,7 +69,7 @@ class Map(object):
 
     @staticmethod
     def map_pos_to_index(map_x, map_y):
-        return map_x//REC_SIZE, map_y//REC_SIZE
+        return map_x // REC_SIZE, map_y // REC_SIZE
 
     @staticmethod
     def is_in_map(map_x, map_y):
@@ -45,44 +84,44 @@ class Map(object):
 
     def draw_chess(self, screen):
         player_color = [PLAYER_ONE_COLOR, PLAYER_TWO_COLOR]
-        font = pygame.font.SysFont(None, REC_SIZE*2//3)
+        font = pygame.font.SysFont(None, REC_SIZE * 2 // 3)
         for i in range(len(self.__steps)):
             x, y = self.__steps[i]
-            map_x, map_y, width, height = Map.get_map_unit_rect(x, y)
-            pos, radius = (map_x + width//2, map_y + height//2), CHESS_RADIUS
+            map_x, map_y, width, height = ChessMap.get_map_unit_rect(x, y)
+            pos, radius = (map_x + width // 2, map_y + height // 2), CHESS_RADIUS
             turn = self.__map[y][x]
             if turn == 1:
                 op_turn = 2
             else:
                 op_turn = 1
-            pygame.draw.circle(screen, player_color[turn-1], pos, radius)
-            msg_image = font.render(str(i), True, player_color[op_turn-1], player_color[turn-1])
+            pygame.draw.circle(screen, player_color[turn - 1], pos, radius)
+            msg_image = font.render(str(i), True, player_color[op_turn - 1], player_color[turn - 1])
             msg_image_rect = msg_image.get_rect()
             msg_image_rect.center = pos
             screen.blit(msg_image, msg_image_rect)
         if len(self.__steps) > 0:
             last_pos = self.__steps[-1]
-            map_x, map_y, width, height = Map.get_map_unit_rect(last_pos[0], last_pos[1])
+            map_x, map_y, width, height = ChessMap.get_map_unit_rect(last_pos[0], last_pos[1])
             line_list = [(map_x, map_y), (map_x + width, map_y),
-                          (map_x + width, map_y + height), (map_x, map_y + height)]
+                         (map_x + width, map_y + height), (map_x, map_y + height)]
             pygame.draw.lines(screen, PURPLE_COLOR, True, line_list, 1)
 
     def draw_background(self, screen):
         color = (0, 0, 0)
-        for y in range(self.__height):
+        for y in range(self.get_height()):
             # 画横线
-            start_pos, end_pos = (REC_SIZE//2, REC_SIZE//2 + REC_SIZE*y),\
-                                 (MAP_WIDTH - REC_SIZE//2, REC_SIZE//2 + REC_SIZE*y)
-            if y == self.__height // 2:
+            start_pos, end_pos = (REC_SIZE // 2, REC_SIZE // 2 + REC_SIZE * y), \
+                                 (MAP_WIDTH - REC_SIZE // 2, REC_SIZE // 2 + REC_SIZE * y)
+            if y == self.get_height() // 2:
                 width = 2
             else:
                 width = 1
             pygame.draw.line(screen, color, start_pos, end_pos, width)
-        for x in range(self.__width):
+        for x in range(self.get_width()):
             # 画竖线
-            start_pos, end_pos = (REC_SIZE//2 + REC_SIZE*x, REC_SIZE//2),\
-                                 (REC_SIZE//2 + REC_SIZE*x, MAP_HEIGHT - REC_SIZE//2)
-            if x == self.__width // 2:
+            start_pos, end_pos = (REC_SIZE // 2 + REC_SIZE * x, REC_SIZE // 2), \
+                                 (REC_SIZE // 2 + REC_SIZE * x, MAP_HEIGHT - REC_SIZE // 2)
+            if x == self.get_width() // 2:
                 width = 2
             else:
                 width = 1
@@ -91,7 +130,21 @@ class Map(object):
         rec_size = 8
         pos = [(3, 3), (11, 3), (3, 11), (11, 11), (7, 7)]
         for x, y in pos:
-            pygame.draw.rect(screen, color, (REC_SIZE//2 + REC_SIZE*x - rec_size//2, REC_SIZE//2 + REC_SIZE*y - rec_size//2, rec_size, rec_size))
+            pygame.draw.rect(screen, color,
+                             (REC_SIZE // 2 + REC_SIZE * x - rec_size // 2,
+                              REC_SIZE // 2 + REC_SIZE * y - rec_size // 2,
+                              rec_size, rec_size))
 
     def get_map(self):
         return self.__map
+
+
+if __name__ == '__main__':
+    mapp = StartMap(SCREEN_WIDTH, SCREEN_HEIGHT)
+    while True:
+        pygame.display.update()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()

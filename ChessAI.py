@@ -120,7 +120,8 @@ class ChessAI(object):
         for _, x, y in moves:
             board[y][x] = turn
 
-            op_turn = MapEntryType.MAP_PLAYER_TWO if turn == MapEntryType.MAP_PLAYER_ONE else MapEntryType.MAP_PLAYER_ONE
+            op_turn = MapEntryType.MAP_PLAYER_TWO if turn == MapEntryType.MAP_PLAYER_ONE\
+                else MapEntryType.MAP_PLAYER_ONE
 
             score = -1 * self.cut_search(board, op_turn, depth-1, -beta, -alpha)
 

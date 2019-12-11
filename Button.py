@@ -8,9 +8,9 @@ class Button(object):
         self.__width = BUTTON_WIDTH
         self.__height = BUTTON_HEIGHT
         self.__button_color = color
-        self.__text_color = TEXT_COLOR
+        self.__text_color = WHITE_COLOR
         self.__enable = enable
-        self.__font = pygame.font.SysFont(None, BUTTON_HEIGHT * 2 // 3)
+        self.__font = pygame.font.SysFont(None, BUTTON_HEIGHT*2 // 3)
 
         self.__rect = pygame.Rect(0, 0, self.__width, self.__height)
         self.__rect.topleft = (x, y)
