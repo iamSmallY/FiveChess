@@ -1,5 +1,6 @@
 import pygame
 from Settings import *
+import abc
 
 
 class Button(object):
@@ -9,15 +10,16 @@ class Button(object):
         self.__height = BUTTON_HEIGHT
         self.__button_color = color
         self.__text_color = WHITE_COLOR
+
         self.__enable = enable
+
         self.__font = pygame.font.SysFont(None, BUTTON_HEIGHT*2 // 3)
 
         self.__rect = pygame.Rect(0, 0, self.__width, self.__height)
         self.__rect.topleft = (x, y)
         self.__text = text
 
-        self.__msg_image = self.__font.render(self.__text, True, self.__text_color,
-                                              self.__button_color[0] if self.__enable else self.__button_color[1])
+        self.__msg_image = self.__font.render(self.__text, True, self.__text_color, None)
         self.__msg_image_rect = self.__msg_image.get_rect()
         self.__msg_image_rect.center = self.__rect.center
 
@@ -29,6 +31,10 @@ class Button(object):
         if not self.__enable:
             self.__msg_image = self.__font.render(self.__text, True, self.__text_color, self.__button_color[0])
             self.__enable = True
+
+    @abc.abstractmethod
+    def click(self, game):
+        pass
 
     def get_enable(self):
         return self.__enable
@@ -56,44 +62,28 @@ class Button(object):
 
 
 class StartButton(Button):
-    def __init__(self, screen, text, x, y):
-        super().__init__(screen, text, x, y, BUTTON_COLOR, True)
+    def __init__(self, screen, text, x, y, enable):
+        super().__init__(screen, text, x, y, BUTTON_COLOR, enable)
 
-    # def click(self, game, button):
-    #     if self.get_enable():
-    #         game.start()
-    #         game.set_winner(None)
-    #         self.set_msg_image(self.get_font().render(self.get_text(), True,
-    #                                                   self.get_text_color(), self.get_button_color()[1]))
-    #         self.set_enable(False) # todo delete this, it's useless
-    #         button.set_enable(False)
-    #         button.set_msg(AI_BUTTON_COLOR[1])
-    #
-    #         return True
-    #     return False
     def click(self, game):
-        if self.get_enable():
+        if not game.get_is_play():
+            game.set_is_play(True)
             game.start()
             game.set_winner(None)
+            self.set_enable(False)
             return True
         return False
 
 
 class GiveUpButton(Button):
-    def __init__(self, screen, text, x, y):
-        super().__init__(screen, text, x, y, BUTTON_COLOR, False)
+    def __init__(self, screen, text, x, y, enable):
+        super().__init__(screen, text, x, y, BUTTON_COLOR, enable)
 
-    def click(self, game, button):
-        if self.get_enable():
+    def click(self, game):
+        if game.get_is_play():
             game.set_is_play(False)
             if game.get_winner() is None:
                 game.set_winner(game.get_map().reverse_turn(game.get_player()))
-            self.set_msg_image(self.get_font().render(self.get_text(), True,
-                                                      self.get_text_color(), self.get_button_color()[1]))
-            self.set_enable(False)
-            button.set_enable(True)
-            button.set_msg(AI_BUTTON_COLOR[0])
-            return True
         return False
 
 

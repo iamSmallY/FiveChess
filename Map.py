@@ -1,5 +1,3 @@
-import pygame
-from Settings import *
 from Button import *
 import abc
 
@@ -35,13 +33,9 @@ class AbstractMap(object):
     def check_buttons(self, game, mouse_x, mouse_y):
         pass
 
-    @abc.abstractmethod
-    def click_button(self, game, button):
-        pass
-
-    @abc.abstractmethod
-    def get_button(self):
-        pass
+    # @abc.abstractmethod
+    # def click_button(self, game, button):
+    #     pass
 
 
 class StartMap(AbstractMap):
@@ -56,11 +50,13 @@ class StartMap(AbstractMap):
         self.__title_image_rect = self.__title_image.get_rect()
         self.__title_image_rect.center = (TITLE_X, TITLE_Y)
 
-        self.__start_button = StartButton(self.get_screen(), 'Start', TITLE_X-BUTTON_WIDTH//2, TITLE_Y+TITLE_HEIGHT)
+        self.__start_button = StartButton(self.get_screen(), 'Start',
+                                          TITLE_X-BUTTON_WIDTH//2, TITLE_Y+TITLE_HEIGHT, True)
         self.__model_button = UseAIButton(self.get_screen(), 'PVE', TITLE_X-BUTTON_WIDTH//2, TITLE_Y+TITLE_HEIGHT+60)
 
     def reset(self):
-        self.__start_button = StartButton(self.get_screen(), 'Start', TITLE_X-BUTTON_WIDTH//2, TITLE_Y+TITLE_HEIGHT)
+        self.__start_button = StartButton(self.get_screen(), 'Start',
+                                          TITLE_X-BUTTON_WIDTH//2, TITLE_Y+TITLE_HEIGHT, True)
         self.__model_button = UseAIButton(self.get_screen(), 'PVE', TITLE_X-BUTTON_WIDTH//2, TITLE_Y+TITLE_HEIGHT+60)
 
     def draw_background(self):
@@ -75,14 +71,11 @@ class StartMap(AbstractMap):
 
     def check_buttons(self, game, mouse_x, mouse_y):
         if self.__start_button.get_rect().collidepoint(mouse_x, mouse_y):
-            self.click_button(game, self.__start_button)
+            self.__start_button.click(game)
             return True
         elif self.__model_button.get_rect().collidepoint(mouse_x, mouse_y):
-            self.click_button(game, self.__model_button)
+            self.__model_button.click(game)
             return False
-
-    def click_button(self, game, button):
-        button.click(game)
 
 
 class ChessMap(AbstractMap):
@@ -90,10 +83,10 @@ class ChessMap(AbstractMap):
         super().__init__(screen, width, height)
         self.__map = [[0 for x in range(self.get_width())] for y in range(self.get_height())]
         self.__steps = []
-        self.__buttons = []
-        self.__buttons.append(StartButton(self.get_screen(), 'Start', MAP_WIDTH + 30, 15))
-        self.__buttons.append(GiveUpButton(self.get_screen(), 'GiveUp', MAP_WIDTH + 30, BUTTON_HEIGHT + 45))
-        self.__useAI_button = UseAIButton(self.get_screen(), 'PVE', MAP_WIDTH + 30, 2 * BUTTON_HEIGHT + 75)
+
+        self.__restart_button = StartButton(self.get_screen(), 'Restart', MAP_WIDTH+30, 15, False)
+        self.__restart_button.set_enable(False)
+        self.__giveup_button = GiveUpButton(self.get_screen(), 'GiveUp', MAP_WIDTH+30, BUTTON_HEIGHT+45, True)
 
     def reset(self):
         for y in range(self.get_height()):
@@ -181,44 +174,23 @@ class ChessMap(AbstractMap):
                              (REC_SIZE // 2 + REC_SIZE * x - rec_size // 2,
                               REC_SIZE // 2 + REC_SIZE * y - rec_size // 2,
                               rec_size, rec_size))
+        self.draw_button()
 
     def draw_button(self):
-        for button in self.__buttons:
-            button.draw()
-        self.__useAI_button.draw()
-
-    def click_button(self, game, button):
-        if button.click(game, self.__useAI_button):
-            for temp in self.__buttons:
-                if temp != button:
-                    temp.not_click()
+        self.__restart_button.draw()
+        self.__giveup_button.draw()
 
     def check_buttons(self, game, mouse_x, mouse_y):
-        for button in self.__buttons:
-            if button.get_rect().collidepoint(mouse_x, mouse_y):
-                self.click_button(game, button)
-                break
-        else:
-            if self.__useAI_button.get_rect().collidepoint(mouse_x, mouse_y):
-                self.__useAI_button.click(game)
+        if self.__restart_button.get_rect().collidepoint(mouse_x, mouse_y):
+            self.__restart_button.click(game)
+        elif self.__giveup_button.get_rect().collidepoint(mouse_x, mouse_y):
+            self.__giveup_button.click(game)
 
-    def get_button(self):
-        return self.__buttons
+    def get_give_up_button(self):
+        return self.__giveup_button
 
     def get_map(self):
         return self.__map
 
-
-if __name__ == '__main__':
-    pygame.init()
-    screen = pygame.display.set_mode([SCREEN_WIDTH, SCREEN_HEIGHT])
-    pygame.display.set_caption('test')
-    mapp = StartMap(screen, SCREEN_WIDTH, SCREEN_HEIGHT)
-    mapp.draw_background()
-    while True:
-        pygame.display.update()
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                exit()
+    def get_restart_button(self):
+        return self.__restart_button

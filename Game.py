@@ -1,4 +1,3 @@
-from Button import *
 from ChessAI import *
 
 
@@ -18,14 +17,13 @@ class Game(object):
         self.__winner = None
 
         self.__AI = ChessAI(CHESS_LEN)
-        self.__isAI = True
-        self.__useAI = False
+        self.__isAI = False
+        self.__useAI = True
 
     def start(self):
         self.__is_play = True
         self.__player = MapEntryType.MAP_PLAYER_ONE
         self.__chess_map.reset()
-        # self.__start_map.reset()
 
     def play(self):
         if self.__is_in_start_map:
@@ -35,9 +33,6 @@ class Game(object):
 
             pygame.draw.rect(self.__screen, LIGHT_YELLOW, pygame.Rect(0, 0, MAP_WIDTH, MAP_HEIGHT))
             pygame.draw.rect(self.__screen, (255, 255, 255), pygame.Rect(MAP_WIDTH, 0, INFO_WIDTH, SCREEN_HEIGHT))
-            # for button in self.__buttons:
-            #     button.draw()
-            # self.__useAI_button.draw()
             self.__chess_map.draw_button()
 
             if self.__is_play and not self.is_over():
@@ -55,6 +50,7 @@ class Game(object):
 
             if self.is_over():
                 self.show_winner()
+                self.__chess_map.get_restart_button().set_enable(True)
 
             self.__chess_map.draw_background()
             self.__chess_map.draw_chess(self.__screen)
@@ -73,10 +69,10 @@ class Game(object):
         self.__chess_map.click(x, y, self.__player)
         if self.__AI.is_win(self.__chess_map.get_map(), self.__player):
             self.__winner = self.__player
-            self.get_map().click_button(self, self.__chess_map.get_button()[1])
+            self.get_map().get_give_up_button().click(self)
         else:
             self.__player = self.__chess_map.reverse_turn(self.__player)
-            if self.__useAI and not self.__is_AI:
+            if self.__useAI and not self.__isAI:
                 self.__isAI = True
 
     def mouse_click(self, mouse_x, mouse_y):
@@ -89,6 +85,8 @@ class Game(object):
                 x, y = self.__chess_map.map_pos_to_index(mouse_x, mouse_y)
                 if self.__chess_map.is_empty(x, y):
                     self.__action = (x, y)
+            if self.__chess_map.check_buttons(self, mouse_x, mouse_y):
+                self.start()
 
     def is_over(self):
         return self.__winner is not None
@@ -149,18 +147,3 @@ if __name__ == '__main__':
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_x, mouse_y = pygame.mouse.get_pos()
                 game.mouse_click(mouse_x, mouse_y)
-
-# if __name__ == '__main__':
-#     game = Game('FIVE CHESS' + GAME_VERSION)
-#     while True:
-#         game.play()
-#         pygame.display.update()
-#
-#         for event in pygame.event.get():
-#             if event.type == pygame.QUIT:
-#                 pygame.quit()
-#                 exit()
-#             elif event.type == pygame.MOUSEBUTTONDOWN:
-#                 mouse_x, mouse_y = pygame.mouse.get_pos()
-#                 game.mouse_click(mouse_x, mouse_y)
-#                 game.get_map().check_buttons(game, mouse_x, mouse_y)
