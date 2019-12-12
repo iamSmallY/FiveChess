@@ -1,5 +1,6 @@
 from Type import *
 
+GAME_NAME = 'Hololive'
 GAME_VERSION = '2.51'
 
 REC_SIZE = 50

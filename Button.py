@@ -1,5 +1,5 @@
-import pygame
 from Settings import *
+import pygame
 import abc
 
 
@@ -96,8 +96,16 @@ class UseAIButton(Button):
         if self.get_enable():
             game.set_useAI(not game.get_useAI())
             self.__text = 'PVE' if self.__text == 'PVP' else 'PVP'
-            self.set_msg(AI_BUTTON_COLOR[0])
+            self.set_msg()
 
-    def set_msg(self, color):
+    def set_msg(self):
         self.set_msg_image(self.get_font().render(self.__text, True,
-                                                  self.get_text_color(), color))
+                                                  self.get_text_color(), None))
+
+
+class ReturnButton(Button):
+    def __init__(self, screen, text, x, y):
+        super().__init__(screen, text, x, y, BUTTON_COLOR, True)
+
+    def click(self, game):
+        return True

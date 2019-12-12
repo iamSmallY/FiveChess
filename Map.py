@@ -1,5 +1,6 @@
 from Button import *
 import abc
+import sys
 
 
 class AbstractMap(object):
@@ -33,10 +34,6 @@ class AbstractMap(object):
     def check_buttons(self, game, mouse_x, mouse_y):
         pass
 
-    # @abc.abstractmethod
-    # def click_button(self, game, button):
-    #     pass
-
 
 class StartMap(AbstractMap):
     def __init__(self, screen, width, height):
@@ -53,6 +50,7 @@ class StartMap(AbstractMap):
         self.__start_button = StartButton(self.get_screen(), 'Start',
                                           TITLE_X-BUTTON_WIDTH//2, TITLE_Y+TITLE_HEIGHT, True)
         self.__model_button = UseAIButton(self.get_screen(), 'PVE', TITLE_X-BUTTON_WIDTH//2, TITLE_Y+TITLE_HEIGHT+60)
+        self.__exit_button = ReturnButton(self.get_screen(), 'Exit', TITLE_X-BUTTON_WIDTH//2, TITLE_Y+TITLE_HEIGHT+120)
 
     def reset(self):
         self.__start_button = StartButton(self.get_screen(), 'Start',
@@ -68,14 +66,28 @@ class StartMap(AbstractMap):
     def draw_button(self):
         self.__start_button.draw()
         self.__model_button.draw()
+        self.__exit_button.draw()
 
     def check_buttons(self, game, mouse_x, mouse_y):
         if self.__start_button.get_rect().collidepoint(mouse_x, mouse_y):
-            self.__start_button.click(game)
+            self.click_start_button(game)
             return True
         elif self.__model_button.get_rect().collidepoint(mouse_x, mouse_y):
-            self.__model_button.click(game)
+            self.click_model_button(game)
             return False
+        elif self.__exit_button.get_rect().collidepoint(mouse_x, mouse_y):
+            self.click_exit_button()
+
+    def click_start_button(self, game):
+        self.__start_button.click(game)
+        game.start()
+
+    def click_model_button(self, game):
+        self.__model_button.click(game)
+
+    @staticmethod
+    def click_exit_button():
+        sys.exit('GoodBye~')
 
 
 class ChessMap(AbstractMap):
@@ -87,6 +99,7 @@ class ChessMap(AbstractMap):
         self.__restart_button = StartButton(self.get_screen(), 'Restart', MAP_WIDTH+30, 15, False)
         self.__restart_button.set_enable(False)
         self.__giveup_button = GiveUpButton(self.get_screen(), 'GiveUp', MAP_WIDTH+30, BUTTON_HEIGHT+45, True)
+        self.__return_button = ReturnButton(self.get_screen(), 'Return', MAP_WIDTH+30, 2*BUTTON_HEIGHT+75)
 
     def reset(self):
         for y in range(self.get_height()):
@@ -179,18 +192,29 @@ class ChessMap(AbstractMap):
     def draw_button(self):
         self.__restart_button.draw()
         self.__giveup_button.draw()
+        self.__return_button.draw()
 
     def check_buttons(self, game, mouse_x, mouse_y):
         if self.__restart_button.get_rect().collidepoint(mouse_x, mouse_y):
-            self.__restart_button.click(game)
+            self.click_restart_button(game)
         elif self.__giveup_button.get_rect().collidepoint(mouse_x, mouse_y):
-            self.__giveup_button.click(game)
+            self.click_giveup_button(game)
+        elif self.__return_button.get_rect().collidepoint(mouse_x, mouse_y):
+            self.click_return_button(game)
 
-    def get_give_up_button(self):
-        return self.__giveup_button
+    @staticmethod
+    def click_return_button(game):
+        game.back_to_start()
+
+    def click_restart_button(self, game):
+        self.__restart_button.click(game)
+        self.__restart_button.set_enable(False)
+        self.__giveup_button.set_enable(True)
+
+    def click_giveup_button(self, game):
+        self.__giveup_button.click(game)
+        self.__giveup_button.set_enable(False)
+        self.__restart_button.set_enable(True)
 
     def get_map(self):
         return self.__map
-
-    def get_restart_button(self):
-        return self.__restart_button
