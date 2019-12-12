@@ -1,4 +1,5 @@
 from Button import *
+from Text import *
 import abc
 import sys
 
@@ -42,15 +43,12 @@ class StartMap(AbstractMap):
         self.__back_img = pygame.image.load('./source/image/background.jpg')
         self.__back_img = pygame.transform.scale(self.__back_img, (SCREEN_WIDTH, SCREEN_HEIGHT))
 
-        self.__title_font = pygame.font.Font(None, TITLE_HEIGHT)
-        self.__title_image = self.__title_font.render('Five Chess', True, BLACK_COLOR)
-        self.__title_image_rect = self.__title_image.get_rect()
-        self.__title_image_rect.center = (TITLE_X, TITLE_Y)
+        self.__title = Text(screen, None, TITLE_HEIGHT, 'Five Chess', BLACK_COLOR, TITLE_X, TITLE_Y)
 
         self.__start_button = StartButton(self.get_screen(), 'Start',
                                           TITLE_X-BUTTON_WIDTH//2, TITLE_Y+TITLE_HEIGHT, True)
         self.__model_button = UseAIButton(self.get_screen(), 'PVE', TITLE_X-BUTTON_WIDTH//2, TITLE_Y+TITLE_HEIGHT+60)
-        self.__exit_button = ReturnButton(self.get_screen(), 'Exit', TITLE_X-BUTTON_WIDTH//2, TITLE_Y+TITLE_HEIGHT+120)
+        self.__exit_button = ExitButton(self.get_screen(), 'Exit', TITLE_X - BUTTON_WIDTH // 2, TITLE_Y + TITLE_HEIGHT + 120)
 
     def reset(self):
         self.__start_button = StartButton(self.get_screen(), 'Start',
@@ -60,7 +58,7 @@ class StartMap(AbstractMap):
     def draw_background(self):
         pygame.draw.rect(self.get_screen(), WHITE_COLOR, pygame.Rect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT))
         self.get_screen().blit(self.__back_img, (0, 0))
-        self.get_screen().blit(self.__title_image, self.__title_image_rect)
+        self.get_screen().blit(*self.__title.get_text_element())
         self.draw_button()
 
     def draw_button(self):
@@ -98,9 +96,8 @@ class ChessMap(AbstractMap):
         self.__steps = []
 
         self.__restart_button = StartButton(self.get_screen(), 'Restart', MAP_WIDTH+30, 130, False)
-        self.__restart_button.set_enable(False)
         self.__giveup_button = GiveUpButton(self.get_screen(), 'GiveUp', MAP_WIDTH+30, BUTTON_HEIGHT+160, True)
-        self.__return_button = ReturnButton(self.get_screen(), 'Menu', MAP_WIDTH+30, 2*BUTTON_HEIGHT+190)
+        self.__return_button = ExitButton(self.get_screen(), 'Menu', MAP_WIDTH + 30, 2 * BUTTON_HEIGHT + 190)
 
     def reset(self):
         for y in range(self.get_height()):
@@ -138,7 +135,6 @@ class ChessMap(AbstractMap):
 
     def draw_chess(self, screen):
         player_color = [PLAYER_ONE_COLOR, PLAYER_TWO_COLOR]
-        font = pygame.font.SysFont(None, REC_SIZE * 2 // 3)
         for i in range(len(self.__steps)):
             x, y = self.__steps[i]
             map_x, map_y, width, height = ChessMap.get_map_unit_rect(x, y)
@@ -149,16 +145,24 @@ class ChessMap(AbstractMap):
             else:
                 op_turn = 1
             pygame.draw.circle(screen, player_color[turn - 1], pos, radius)
-            msg_image = font.render(str(i), True, player_color[op_turn - 1], player_color[turn - 1])
-            msg_image_rect = msg_image.get_rect()
-            msg_image_rect.center = pos
-            screen.blit(msg_image, msg_image_rect)
+            font = Text(self.get_screen(), None, REC_SIZE*2//3, str(i), player_color[op_turn-1], *pos)
+            screen.blit(*font.get_text_element())
         if len(self.__steps) > 0:
             last_pos = self.__steps[-1]
             map_x, map_y, width, height = ChessMap.get_map_unit_rect(last_pos[0], last_pos[1])
             line_list = [(map_x, map_y), (map_x + width, map_y),
                          (map_x + width, map_y + height), (map_x, map_y + height)]
             pygame.draw.lines(screen, PURPLE_COLOR, True, line_list, 1)
+
+    def change_mouse_show(self):
+        map_x, map_y = pygame.mouse.get_pos()
+        x, y = self.map_pos_to_index(map_x, map_y)
+        if self.is_in_map(map_x, map_y) and self.is_empty(x, y):
+            pygame.mouse.set_visible(False)
+            pos, radius = (map_x, map_y), CHESS_RADIUS
+            pygame.draw.circle(self.get_screen(), LIGHT_RED, pos, radius)
+        else:
+            pygame.mouse.set_visible(True)
 
     def draw_background(self):
         color = (0, 0, 0)
@@ -190,6 +194,20 @@ class ChessMap(AbstractMap):
                               rec_size, rec_size))
         self.draw_button()
 
+    def show_winner(self, winner):
+        def show_font(screen, text, location_x, location_y, height):
+            font = Text(screen, None, height, text, (0, 0, 255), location_x, location_y)
+            screen.blit(*font.get_text_element())
+
+        if winner is None:
+            return
+        if winner == MapEntryType.MAP_PLAYER_ONE:
+            string = 'Winner is Black'
+        else:
+            string = 'Winner is White'
+        show_font(self.get_screen(), string, MAP_WIDTH+25, SCREEN_HEIGHT-60, 30)
+        pygame.mouse.set_visible(True)
+
     def draw_button(self):
         self.__restart_button.draw()
         self.__giveup_button.draw()
@@ -206,10 +224,10 @@ class ChessMap(AbstractMap):
         elif self.__giveup_button.get_rect().collidepoint(mouse_x, mouse_y):
             self.click_giveup_button(game)
         elif self.__return_button.get_rect().collidepoint(mouse_x, mouse_y):
-            self.click_return_button(game)
+            self.click_menu_button(game)
 
     @staticmethod
-    def click_return_button(game):
+    def click_menu_button(game):
         game.back_to_start()
 
     def click_restart_button(self, game):

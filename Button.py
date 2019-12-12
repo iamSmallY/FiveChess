@@ -99,11 +99,11 @@ class UseAIButton(Button):
             self.set_msg()
 
     def set_msg(self):
-        self.set_msg_image(self.get_font().render(self.__text, True,
-                                                  self.get_text_color(), None))
+        self.set_msg_image(self.get_font().
+                           render(self.__text, True, self.get_text_color(), None))
 
 
-class ReturnButton(Button):
+class ExitButton(Button):
     def __init__(self, screen, text, x, y):
         super().__init__(screen, text, x, y, BUTTON_COLOR, True)
 
