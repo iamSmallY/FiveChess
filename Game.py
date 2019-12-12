@@ -102,9 +102,9 @@ class Game(object):
         if self.__winner is None:
             return
         if self.__winner == MapEntryType.MAP_PLAYER_ONE:
-            string = 'Winner is White'
-        else:
             string = 'Winner is Black'
+        else:
+            string = 'Winner is White'
         show_font(self.__screen, string, MAP_WIDTH+25, SCREEN_HEIGHT-60, 30)
         pygame.mouse.set_visible(True)
 
