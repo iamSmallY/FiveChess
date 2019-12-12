@@ -37,6 +37,8 @@ class Game(object):
             self.__chess_map.draw_button()
 
             if self.__is_play and not self.is_over():
+                if self.__useAI:
+                    self.__chess_map.draw_yagoo()
                 if self.__useAI and self.__isAI:
                     x, y = self.__AI.find_best_chess(self.__chess_map.get_map(), self.__player)
                     self.chess_map_check_click(x, y)
@@ -111,6 +113,8 @@ class Game(object):
     def back_to_start(self):
         self.__start_map.reset()
         self.__is_in_start_map = True
+        self.__useAI = True
+        self.__isAI = False
         self.get_map().click_restart_button(self)
 
     def get_is_play(self):

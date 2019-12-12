@@ -1,7 +1,7 @@
 from Type import *
 
 GAME_NAME = 'Hololive'
-GAME_VERSION = '2.51'
+GAME_VERSION = '1.14'
 
 REC_SIZE = 50
 CHESS_RADIUS = REC_SIZE//2 - 2

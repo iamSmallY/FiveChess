@@ -87,6 +87,7 @@ class StartMap(AbstractMap):
 
     @staticmethod
     def click_exit_button():
+        pygame.quit()
         sys.exit('GoodBye~')
 
 
@@ -96,10 +97,10 @@ class ChessMap(AbstractMap):
         self.__map = [[0 for x in range(self.get_width())] for y in range(self.get_height())]
         self.__steps = []
 
-        self.__restart_button = StartButton(self.get_screen(), 'Restart', MAP_WIDTH+30, 15, False)
+        self.__restart_button = StartButton(self.get_screen(), 'Restart', MAP_WIDTH+30, 130, False)
         self.__restart_button.set_enable(False)
-        self.__giveup_button = GiveUpButton(self.get_screen(), 'GiveUp', MAP_WIDTH+30, BUTTON_HEIGHT+45, True)
-        self.__return_button = ReturnButton(self.get_screen(), 'Return', MAP_WIDTH+30, 2*BUTTON_HEIGHT+75)
+        self.__giveup_button = GiveUpButton(self.get_screen(), 'GiveUp', MAP_WIDTH+30, BUTTON_HEIGHT+160, True)
+        self.__return_button = ReturnButton(self.get_screen(), 'Menu', MAP_WIDTH+30, 2*BUTTON_HEIGHT+190)
 
     def reset(self):
         for y in range(self.get_height()):
@@ -193,6 +194,11 @@ class ChessMap(AbstractMap):
         self.__restart_button.draw()
         self.__giveup_button.draw()
         self.__return_button.draw()
+
+    def draw_yagoo(self):
+        yagoo = pygame.image.load('./source/image/yagoo.jpg')
+        yagoo = pygame.transform.scale(yagoo, (100, 100))
+        self.get_screen().blit(yagoo, (MAP_WIDTH+30, 15))
 
     def check_buttons(self, game, mouse_x, mouse_y):
         if self.__restart_button.get_rect().collidepoint(mouse_x, mouse_y):
