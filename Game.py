@@ -1,4 +1,3 @@
-from Map import *
 from ChessAI import *
 
 
@@ -71,7 +70,7 @@ class Game(object):
         self.__chess_map.click(x, y, self.__player)
         if self.__AI.is_win(self.__chess_map.get_map(), self.__player):
             self.__winner = self.__player
-            self.get_map().click_giveup_button(self)
+            self.__chess_map.click_giveup_button(self)
         else:
             self.__player = self.__chess_map.reverse_turn(self.__player)
             if self.__useAI and not self.__isAI:
@@ -115,7 +114,7 @@ class Game(object):
         self.__is_in_start_map = True
         self.__useAI = True
         self.__isAI = False
-        self.get_map().click_restart_button(self)
+        self.__chess_map.click_restart_button(self)
 
     def get_is_play(self):
         return self.__is_play
