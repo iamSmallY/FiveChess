@@ -1,5 +1,6 @@
 from Button import *
 from Text import *
+from Type import *
 import abc
 import sys
 
@@ -45,15 +46,20 @@ class StartMap(AbstractMap):
 
         self.__title = Text(screen, None, TITLE_HEIGHT, 'Five Chess', BLACK_COLOR, TITLE_X, TITLE_Y)
 
-        self.__start_button = StartButton(self.get_screen(), 'Start',
-                                          TITLE_X-BUTTON_WIDTH//2, TITLE_Y+TITLE_HEIGHT, True)
-        self.__model_button = UseAIButton(self.get_screen(), 'PVE', TITLE_X-BUTTON_WIDTH//2, TITLE_Y+TITLE_HEIGHT+60)
-        self.__exit_button = ExitButton(self.get_screen(), 'Exit', TITLE_X - BUTTON_WIDTH // 2, TITLE_Y + TITLE_HEIGHT + 120)
+        self.__start_button = Button(self.get_screen(), 'Start',
+                                     TITLE_X - BUTTON_WIDTH // 2, TITLE_Y + TITLE_HEIGHT, BUTTON_COLOR, True)
+        self.__model_button = Button(self.get_screen(), 'PVE',
+                                     TITLE_X - BUTTON_WIDTH // 2, TITLE_Y + TITLE_HEIGHT + 60, AI_BUTTON_COLOR, True)
+        self.__exit_button = Button(self.get_screen(), 'Exit',
+                                    TITLE_X - BUTTON_WIDTH // 2, TITLE_Y + TITLE_HEIGHT + 120, BUTTON_COLOR, True)
 
     def reset(self):
-        self.__start_button = StartButton(self.get_screen(), 'Start',
-                                          TITLE_X-BUTTON_WIDTH//2, TITLE_Y+TITLE_HEIGHT, True)
-        self.__model_button = UseAIButton(self.get_screen(), 'PVE', TITLE_X-BUTTON_WIDTH//2, TITLE_Y+TITLE_HEIGHT+60)
+        self.__start_button = Button(self.get_screen(), 'Start',
+                                     TITLE_X - BUTTON_WIDTH // 2, TITLE_Y + TITLE_HEIGHT, BUTTON_COLOR, True)
+        self.__model_button = Button(self.get_screen(), 'PVE',
+                                     TITLE_X - BUTTON_WIDTH // 2, TITLE_Y + TITLE_HEIGHT + 60, AI_BUTTON_COLOR, True)
+        self.__exit_button = Button(self.get_screen(), 'Exit',
+                                    TITLE_X - BUTTON_WIDTH // 2, TITLE_Y + TITLE_HEIGHT + 120, BUTTON_COLOR, True)
 
     def draw_background(self):
         pygame.draw.rect(self.get_screen(), WHITE_COLOR, pygame.Rect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -76,12 +82,19 @@ class StartMap(AbstractMap):
         elif self.__exit_button.get_rect().collidepoint(mouse_x, mouse_y):
             self.click_exit_button()
 
-    def click_start_button(self, game):
-        self.__start_button.click(game)
+    @staticmethod
+    def click_start_button(game):
+        if not game.get_is_play():
+            game.set_is_play(True)
+            game.start()
+            game.set_winner(None)
         game.start()
 
     def click_model_button(self, game):
-        self.__model_button.click(game)
+        game.set_useAI(not game.get_useAI())
+        self.__model_button.set_text('PVE' if self.__model_button.get_text() == 'PVP' else 'PVP')
+        self.__model_button.set_msg_image(self.__model_button.get_text())
+        self.__model_button.set_enable(not self.__model_button.get_enable())
 
     @staticmethod
     def click_exit_button():
@@ -95,9 +108,11 @@ class ChessMap(AbstractMap):
         self.__map = [[0 for x in range(self.get_width())] for y in range(self.get_height())]
         self.__steps = []
 
-        self.__restart_button = StartButton(self.get_screen(), 'Restart', MAP_WIDTH+30, 130, False)
-        self.__giveup_button = GiveUpButton(self.get_screen(), 'GiveUp', MAP_WIDTH+30, BUTTON_HEIGHT+160, True)
-        self.__return_button = ExitButton(self.get_screen(), 'Menu', MAP_WIDTH + 30, 2 * BUTTON_HEIGHT + 190)
+        self.__restart_button = Button(self.get_screen(), 'Restart', MAP_WIDTH + 30, 130, BUTTON_COLOR, False)
+        self.__giveup_button = Button(self.get_screen(), 'GiveUp', MAP_WIDTH + 30, BUTTON_HEIGHT + 160, BUTTON_COLOR,
+                                      True)
+        self.__return_button = Button(self.get_screen(), 'Menu',
+                                      MAP_WIDTH + 30, 2 * BUTTON_HEIGHT + 190, BUTTON_COLOR, True)
 
     def reset(self):
         for y in range(self.get_height()):
@@ -129,8 +144,8 @@ class ChessMap(AbstractMap):
     def is_empty(self, x, y):
         return self.__map[y][x] == 0
 
-    def click(self, x, y, type):
-        self.__map[y][x] = type
+    def click(self, x, y, _type):
+        self.__map[y][x] = _type
         self.__steps.append((x, y))
 
     def draw_chess(self, screen):
@@ -145,7 +160,7 @@ class ChessMap(AbstractMap):
             else:
                 op_turn = 1
             pygame.draw.circle(screen, player_color[turn - 1], pos, radius)
-            font = Text(self.get_screen(), None, REC_SIZE*2//3, str(i), player_color[op_turn-1], *pos)
+            font = Text(self.get_screen(), None, REC_SIZE * 2 // 3, str(i), player_color[op_turn - 1], *pos)
             screen.blit(*font.get_text_element())
         if len(self.__steps) > 0:
             last_pos = self.__steps[-1]
@@ -205,7 +220,7 @@ class ChessMap(AbstractMap):
             string = 'Winner is Black'
         else:
             string = 'Winner is White'
-        show_font(self.get_screen(), string, MAP_WIDTH+25, SCREEN_HEIGHT-60, 30)
+        show_font(self.get_screen(), string, MAP_WIDTH + 100, SCREEN_HEIGHT - 45, 30)
         pygame.mouse.set_visible(True)
 
     def draw_button(self):
@@ -216,7 +231,7 @@ class ChessMap(AbstractMap):
     def draw_yagoo(self):
         yagoo = pygame.image.load('./source/image/yagoo.jpg')
         yagoo = pygame.transform.scale(yagoo, (100, 100))
-        self.get_screen().blit(yagoo, (MAP_WIDTH+30, 15))
+        self.get_screen().blit(yagoo, (MAP_WIDTH + 30, 15))
 
     def check_buttons(self, game, mouse_x, mouse_y):
         if self.__restart_button.get_rect().collidepoint(mouse_x, mouse_y):
@@ -224,19 +239,25 @@ class ChessMap(AbstractMap):
         elif self.__giveup_button.get_rect().collidepoint(mouse_x, mouse_y):
             self.click_giveup_button(game)
         elif self.__return_button.get_rect().collidepoint(mouse_x, mouse_y):
-            self.click_menu_button(game)
+            self.click_return_button(game)
 
     @staticmethod
-    def click_menu_button(game):
-        game.back_to_start()
+    def click_return_button(game):
+        game.reset()
 
     def click_restart_button(self, game):
-        self.__restart_button.click(game)
+        if not game.get_is_play():
+            game.set_is_play(True)
+            game.start()
+            game.set_winner(None)
         self.__restart_button.set_enable(False)
         self.__giveup_button.set_enable(True)
 
     def click_giveup_button(self, game):
-        self.__giveup_button.click(game)
+        if game.get_is_play():
+            game.set_is_play(False)
+            if game.get_winner() is None:
+                game.set_winner(game.get_map().reverse_turn(game.get_player()))
         self.__giveup_button.set_enable(False)
         self.__restart_button.set_enable(True)
 

@@ -17,3 +17,15 @@ class ChessType(IntEnum):
     CHONG_FOUR = 5,
     LIVE_FOUR = 6,
     LIVE_FIVE = 7,
+
+
+class SCORE(IntEnum):
+    SCORE_FIVE = 10000,
+    SCORE_FOUR = 10000,
+    SCORE_SFOUR = 1000,
+    SCORE_THREE = 100,
+    SCORE_STHREE = 10,
+    SCORE_TWO = 8,
+    SCORE_STWO = 2,
+    SCORE_MAX = 0x7fffffff,
+    SCORE_MIN = -1 * 0x7fffffff,

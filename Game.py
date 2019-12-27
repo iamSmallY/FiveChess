@@ -82,7 +82,7 @@ class Game(object):
     def is_over(self):
         return self.__winner is not None
 
-    def back_to_start(self):
+    def reset(self):
         self.__start_map.reset()
         self.__is_in_start_map = True
         self.__useAI = True

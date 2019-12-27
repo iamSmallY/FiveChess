@@ -1,4 +1,5 @@
 from Map import *
+from Type import *
 
 
 class ChessAI(object):
@@ -76,15 +77,15 @@ class ChessAI(object):
                     m_score, o_score = self.evaluate_point_score(board, x, y, mine, opponent)
                     point = (max(m_score, o_score), x, y)
 
-                    if m_score >= SCORE_FIVE or o_score >= SCORE_FIVE:
+                    if m_score >= SCORE.SCORE_FIVE.value or o_score >= SCORE.SCORE_FIVE.value:
                         fives.append(point)
-                    elif m_score >= SCORE_FOUR:
+                    elif m_score >= SCORE.SCORE_FOUR.value:
                         mfours.append(point)
-                    elif o_score >= SCORE_FOUR:
+                    elif o_score >= SCORE.SCORE_FOUR.value:
                         ofours.append(point)
-                    elif m_score >= SCORE_SFOUR:
+                    elif m_score >= SCORE.SCORE_SFOUR.value:
                         msfours.append(point)
-                    elif o_score >= SCORE_SFOUR:
+                    elif o_score >= SCORE.SCORE_SFOUR.value:
                         osfours.append(point)
 
                     moves.append(point)
@@ -105,9 +106,9 @@ class ChessAI(object):
             moves = moves[:AI_LIMITED_MOVE_NUM]
         return moves
 
-    def cut_search(self, board, turn, depth, alpha=SCORE_MIN, beta=SCORE_MAX):
+    def cut_search(self, board, turn, depth, alpha=SCORE.SCORE_MIN.value, beta=SCORE.SCORE_MAX.value):
         score = self.evaluate(board, turn)
-        if depth <= 0 or abs(score) >= SCORE_FIVE:
+        if depth <= 0 or abs(score) >= SCORE.SCORE_FIVE.value:
             return score
 
         moves = self.get_can_move(board, turn)
@@ -155,89 +156,89 @@ class ChessAI(object):
     @staticmethod
     def get_point_score(count):
         score = 0
-        if count[FIVE] > 0:
-            return SCORE_FIVE
+        if count[ChessType.LIVE_FIVE.value] > 0:
+            return SCORE.SCORE_FIVE.value
 
-        if count[FOUR] > 0:
-            return SCORE_FOUR
+        if count[ChessType.LIVE_FOUR.value] > 0:
+            return SCORE.SCORE_FOUR.value
 
-        if count[SFOUR] > 1:
-            score += count[SFOUR] * SCORE_SFOUR
-        elif count[SFOUR] > 0 and count[THREE] > 0:
-            score += count[SFOUR] * SCORE_SFOUR
-        elif count[SFOUR] > 0:
-            score += SCORE_THREE
+        if count[ChessType.CHONG_FOUR.value] > 1:
+            score += count[ChessType.CHONG_FOUR.value] * SCORE.SCORE_SFOUR.value
+        elif count[ChessType.CHONG_FOUR.value] > 0 and count[ChessType.LIVE_THREE.value] > 0:
+            score += count[ChessType.CHONG_FOUR.value] * SCORE.SCORE_SFOUR.value
+        elif count[ChessType.CHONG_FOUR.value] > 0:
+            score += SCORE.SCORE_THREE.value
 
-        if count[THREE] > 1:
-            score += 5 * SCORE_THREE
-        elif count[THREE] > 0:
-            score += SCORE_THREE
+        if count[ChessType.LIVE_THREE.value] > 1:
+            score += 5 * SCORE.SCORE_THREE.value
+        elif count[ChessType.LIVE_THREE.value] > 0:
+            score += SCORE.SCORE_THREE.value
 
-        if count[STHREE] > 0:
-            score += count[STHREE] * SCORE_STHREE
-        if count[TWO] > 0:
-            score += count[TWO] * SCORE_TWO
-        if count[STWO] > 0:
-            score += count[STWO] * SCORE_STWO
+        if count[ChessType.SLEEP_THREE.value] > 0:
+            score += count[ChessType.SLEEP_THREE.value] * SCORE.SCORE_STHREE.value
+        if count[ChessType.LIVE_TWO.value] > 0:
+            score += count[ChessType.LIVE_TWO.value] * SCORE.SCORE_TWO.value
+        if count[ChessType.SLEEP_TWO.value] > 0:
+            score += count[ChessType.SLEEP_TWO.value] * SCORE.SCORE_STWO.value
 
         return score
 
     @staticmethod
     def get_score(mine_count, opponent_count):
         m_score, o_score = 0, 0
-        if mine_count[FIVE] > 0:
-            return SCORE_FIVE, 0
-        if opponent_count[FIVE] > 0:
-            return 0, SCORE_FIVE
+        if mine_count[ChessType.LIVE_FIVE.value] > 0:
+            return SCORE.SCORE_FIVE.value, 0
+        if opponent_count[ChessType.LIVE_FIVE.value] > 0:
+            return 0, SCORE.SCORE_FIVE.value
 
-        if mine_count[SFOUR] >= 2:
-            mine_count[FOUR] += 1
-        if opponent_count[SFOUR] >= 2:
-            opponent_count[FOUR] += 1
+        if mine_count[ChessType.CHONG_FOUR.value] >= 2:
+            mine_count[ChessType.LIVE_FOUR.value] += 1
+        if opponent_count[ChessType.CHONG_FOUR.value] >= 2:
+            opponent_count[ChessType.LIVE_FOUR.value] += 1
 
-        if mine_count[FOUR] > 0:
+        if mine_count[ChessType.LIVE_FOUR.value] > 0:
             return 9050, 0
-        if mine_count[SFOUR] > 0:
+        if mine_count[ChessType.CHONG_FOUR.value] > 0:
             return 9040, 0
 
-        if opponent_count[FOUR] > 0:
+        if opponent_count[ChessType.LIVE_FOUR.value] > 0:
             return 0, 9030
-        if opponent_count[SFOUR] > 0 and opponent_count[THREE] > 0:
+        if opponent_count[ChessType.CHONG_FOUR.value] > 0 and opponent_count[ChessType.LIVE_THREE.value] > 0:
             return 0, 9020
 
-        if mine_count[THREE] > 0 and opponent_count[SFOUR] == 0:
+        if mine_count[ChessType.LIVE_THREE.value] > 0 and opponent_count[ChessType.CHONG_FOUR.value] == 0:
             return 9010, 0
 
-        if opponent_count[THREE] > 1 and mine_count[THREE] == 0 and mine_count[STHREE] == 0:
+        if opponent_count[ChessType.LIVE_THREE.value] > 1 and mine_count[ChessType.LIVE_THREE.value] == 0 and mine_count[ChessType.SLEEP_THREE.value] == 0:
             return 0, 9000
 
-        if opponent_count[SFOUR] > 0:
+        if opponent_count[ChessType.CHONG_FOUR.value] > 0:
             m_score += 400
 
-        if mine_count[THREE] > 1:
+        if mine_count[ChessType.LIVE_THREE.value] > 1:
             m_score += 500
-        elif mine_count[THREE] == 1:
+        elif mine_count[ChessType.LIVE_THREE.value] == 1:
             m_score += 100
 
-        if opponent_count[THREE] > 1:
+        if opponent_count[ChessType.LIVE_THREE.value] > 1:
             o_score += 2000
-        elif opponent_count[THREE] == 1:
+        elif opponent_count[ChessType.LIVE_THREE.value] == 1:
             o_score += 400
 
-        if mine_count[STHREE] > 0:
-            m_score += mine_count[STHREE] * 10
-        if opponent_count[STHREE] > 0:
-            o_score += opponent_count[STHREE] * 10
+        if mine_count[ChessType.SLEEP_THREE.value] > 0:
+            m_score += mine_count[ChessType.SLEEP_THREE.value] * 10
+        if opponent_count[ChessType.SLEEP_THREE.value] > 0:
+            o_score += opponent_count[ChessType.SLEEP_THREE.value] * 10
 
-        if mine_count[TWO] > 0:
-            m_score += mine_count[TWO] * 6
-        if opponent_count[TWO] > 0:
-            o_score += opponent_count[STWO] * 6
+        if mine_count[ChessType.LIVE_TWO.value] > 0:
+            m_score += mine_count[ChessType.LIVE_TWO.value] * 6
+        if opponent_count[ChessType.LIVE_TWO.value] > 0:
+            o_score += opponent_count[ChessType.SLEEP_TWO.value] * 6
 
-        if mine_count[STWO] > 0:
-            m_score += mine_count[STWO] * 2
-        if opponent_count[STWO] > 0:
-            o_score += opponent_count[STWO] * 2
+        if mine_count[ChessType.SLEEP_TWO.value] > 0:
+            m_score += mine_count[ChessType.SLEEP_TWO.value] * 2
+        if opponent_count[ChessType.SLEEP_TWO.value] > 0:
+            o_score += opponent_count[ChessType.SLEEP_TWO.value] * 2
 
         return m_score, o_score
 
@@ -259,7 +260,7 @@ class ChessAI(object):
         mine_count = self.__count[mine-1]
         opponent_count = self.__count[opponent-1]
         if check_win:
-            return mine_count[FIVE] > 0
+            return mine_count[ChessType.LIVE_FIVE.value] > 0
         else:
             m_score, o_score = self.get_score(mine_count, opponent_count)
             return m_score-o_score
@@ -333,7 +334,7 @@ class ChessAI(object):
 
         # M: mine, P: opponent, E: empty
         if m_range >= 5:
-            count[FIVE] += 1
+            count[ChessType.LIVE_FIVE.value] += 1
 
         # FOUR: XMMMMX
         # SFOUR: XMMMMP, PMMMMX
@@ -344,9 +345,9 @@ class ChessAI(object):
             if line[right_idx+1] == empty:
                 right_empty = True
             if left_empty and right_empty:
-                count[FOUR] += 1
+                count[ChessType.LIVE_FOUR.value] += 1
             elif left_empty or right_empty:
-                count[SFOUR] += 1
+                count[ChessType.CHONG_FOUR.value] += 1
 
         # SFOUR: MXMMM or MMMXM
         # THREE: XMMMXX, XXMMMX
@@ -357,14 +358,14 @@ class ChessAI(object):
             if line[left_idx-1] == empty:
                 if line[left_idx-2] == mine:  # MXMMM
                     set_record(x, y, left_idx-2, left_idx-1, dir_index, dir)
-                    count[SFOUR] += 1
+                    count[ChessType.CHONG_FOUR.value] += 1
                     left_four = True
                 left_empty = True
 
             if line[right_idx+1] == empty:
                 if line[right_idx+2] == mine:  # MMMXM
                     set_record(x, y, right_idx+1, right_idx+2, dir_index, dir)
-                    count[SFOUR] += 1
+                    count[ChessType.CHONG_FOUR.value] += 1
                     right_four = True
                 right_empty = True
 
@@ -372,11 +373,11 @@ class ChessAI(object):
                 pass
             elif left_empty and right_empty:
                 if chess_range > 5:  # XMMMXX, XXMMMX
-                    count[THREE] += 1
+                    count[ChessType.LIVE_THREE.value] += 1
                 else:  # PXMMMXP
-                    count[STHREE] += 1
+                    count[ChessType.SLEEP_THREE.value] += 1
             elif left_empty or right_empty:  # PMMMX, XMMMP
-                count[STHREE] += 1
+                count[ChessType.SLEEP_THREE.value] += 1
 
             # SFOUR: MMXMM
             # THREE: XMXMMX or XMMXMX
@@ -391,13 +392,13 @@ class ChessAI(object):
                         set_record(x, y, left_idx-2, left_idx-1, dir_index, dir)
                         if line[left_idx-3] == empty:
                             if line[right_idx+1] == empty:  # XMXMMX
-                                count[THREE] += 1
+                                count[ChessType.LIVE_THREE.value] += 1
                             else:  # XMXMMP
-                                count[STHREE] += 1
+                                count[ChessType.SLEEP_THREE.value] += 1
                             left_three = True
                         elif line[left_idx-3] == opponent:  # PMXMMX
                             if line[right_idx+1] == empty:
-                                count[STHREE] += 1
+                                count[ChessType.SLEEP_THREE.value] += 1
                                 left_three = True
 
                     left_empty = True
@@ -406,16 +407,16 @@ class ChessAI(object):
                     if line[right_idx+2] == mine:
                         if line[right_idx+3] == mine:  # MMXMM
                             set_record(x, y, right_idx+1, right_idx+2, dir_index, dir)
-                            count[SFOUR] += 1
+                            count[ChessType.CHONG_FOUR.value] += 1
                             right_three = True
                         elif line[right_idx+3] == empty:
                             if left_empty:  # XMMXMX
-                                count[THREE] += 1
+                                count[ChessType.LIVE_THREE.value] += 1
                             else:  # PMMXMX
-                                count[STHREE] += 1
+                                count[ChessType.SLEEP_THREE.value] += 1
                             right_three = True
                         elif left_empty:  # XMMXMP
-                            count[STHREE] += 1
+                            count[ChessType.SLEEP_THREE.value] += 1
                             right_three = True
 
                     right_empty = True
@@ -423,9 +424,9 @@ class ChessAI(object):
                 if left_three or right_three:
                     pass
                 elif left_empty and right_empty:  # XMMX
-                    count[TWO] += 1
+                    count[ChessType.LIVE_TWO.value] += 1
                 elif left_empty or right_empty:  # PMMX, XMMP
-                    count[STWO] += 1
+                    count[ChessType.SLEEP_TWO.value] += 1
 
             # Live Two: XMXMX, XMXXMX only check right direction
             # Sleep Two: PMXMX, XMXMP
@@ -435,18 +436,18 @@ class ChessAI(object):
                     if line[left_idx - 2] == mine:
                         if line[left_idx - 3] == empty:
                             if line[right_idx + 1] == opponent:  # XMXMP
-                                count[STWO] += 1
+                                count[ChessType.SLEEP_TWO.value] += 1
                     left_empty = True
 
                 if line[right_idx + 1] == empty:
                     if line[right_idx + 2] == mine:
                         if line[right_idx + 3] == empty:
                             if left_empty:  # XMXMX
-                                count[TWO] += 1
+                                count[ChessType.LIVE_TWO.value] += 1
                             else:  # PMXMX
-                                count[STWO] += 1
+                                count[ChessType.SLEEP_TWO.value] += 1
                     elif line[right_idx + 2] == empty:
                         if line[right_idx + 3] == mine and line[right_idx + 4] == empty:  # XMXXMX
-                            count[TWO] += 1
+                            count[ChessType.LIVE_TWO.value] += 1
 
             return ChessType.NONE
