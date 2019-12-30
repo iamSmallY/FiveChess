@@ -144,8 +144,8 @@ class ChessMap(AbstractMap):
     def is_empty(self, x, y):
         return self.__map[y][x] == 0
 
-    def click(self, x, y, _type):
-        self.__map[y][x] = _type
+    def click(self, x, y, type):
+        self.__map[y][x] = type
         self.__steps.append((x, y))
 
     def draw_chess(self, screen):
